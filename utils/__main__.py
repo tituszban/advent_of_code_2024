@@ -26,6 +26,16 @@ if __name__ == "__main__":
     main()
 """.lstrip()
 
+test_template = """
+from main import solve
+
+
+def test_main():
+    assert solve([
+
+    ]) == 0
+""".lstrip()
+
 
 @cli.command()
 @click.option("--day", type=int, default=datetime.now().day)
@@ -45,6 +55,9 @@ def new_day(day: int, session_cookie: str, email: str, year: str):
 
     with open(f"{padded}/1/main.py", "w") as f:
         f.writelines(main_template.format(padded))
+    
+    with open(f"{padded}/1/test_main_{padded}_1.py", "w") as f:
+        f.writelines(test_template)
 
     if not session_cookie:
         print("No session cookie specified. Skipping download")
@@ -66,34 +79,6 @@ def new_day(day: int, session_cookie: str, email: str, year: str):
         f.writelines(r.text)
 
 
-test_template = """
-from main import solve
-
-
-def test_main():
-    assert solve([])
-""".lstrip()
-
-
-@cli.command()
-@click.option("--day", type=int, default=datetime.now().day)
-def add_tests(day):
-    padded = str(day).zfill(2)
-    print(f"Creating tests for day {padded}")
-
-    if not os.path.isdir(padded):
-        raise Exception(f"Folder {padded} doesn't exist")
-
-    if os.path.isfile(f"{padded}/1/test_main_{padded}_1.py"):
-        raise Exception(f"Tests for {padded} already exists")
-
-    with open(f"{padded}/1/test_main_{padded}_1.py", "w") as f:
-        f.writelines(test_template)
-
-    with open(f"{padded}/2/test_main_{padded}_2.py", "w") as f:
-        f.writelines(test_template)
-
-
 @cli.command()
 @click.option("--day", type=int, default=datetime.now().day)
 def part_two(day: int):
@@ -107,6 +92,12 @@ def part_two(day: int):
         raise Exception(f"Part 2 file of {padded} already exists")
 
     shutil.copy2(f"{padded}/1/main.py", f"{padded}/2/main.py")
+
+    if os.path.isfile(f"{padded}/2/test_main_{padded}_2.py"):
+        raise Exception(f"Tests for {padded} already exists")
+    
+    if os.path.isfile(f"{padded}/1/test_main_{padded}_1.py"):
+        shutil.copy2(f"{padded}/1/test_main_{padded}_1.py", f"{padded}/2/test_main_{padded}_2.py")
 
 
 if __name__ == "__main__":
